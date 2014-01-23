@@ -174,15 +174,6 @@ handle_call(get_all_monitors, _From, State) ->
     Monitors = ets:tab2list(State#state.monitors),
     {reply, Monitors, State};
 handle_call(stop, _From, State) ->
-    Sup = State#state.supervisor,
-    Childs = supervisor:which_children(Sup),
-    Terminator = fun(Child) ->
-        {_, Pid, _, _} = Child,
-        gen_server:call(Pid, stop),
-        Child
-      end,
-    lists:map(Terminator, Childs),
-    true = exit(Sup, shutdown),
     {stop, normal, ok, State};
 handle_call(_Msg, _From, State) ->
     Reply = {error, invalid_message},
@@ -225,8 +216,18 @@ handle_info({'EXIT', Pid, _Reason}, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, _State) ->
-    ok.
+terminate(_Reason, State) ->
+  Sup = State#state.supervisor,
+  Childs = supervisor:which_children(Sup),
+  Terminator = fun(Child) ->
+    {_, Pid, _, _} = Child,
+    true = unlink(Pid),
+    gen_server:call(Pid, stop),
+    Child
+  end,
+  lists:map(Terminator, Childs),
+  true = exit(Sup, shutdown),
+  ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
