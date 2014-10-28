@@ -1,4 +1,4 @@
-{application, rtc_lib_poolboy,
+{application, poolboy,
  [
   {description, ""},
   {vsn, "1"},

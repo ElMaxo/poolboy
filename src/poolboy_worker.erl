@@ -1,6 +1,6 @@
 %% Poolboy - A hunky Erlang worker pool factory
 
--module(rtc_lib_poolboy_worker).
+-module(poolboy_worker).
 
 -export([behaviour_info/1]).
 
